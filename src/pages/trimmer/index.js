@@ -55,7 +55,7 @@ export default function Home() {
       <div className="w-full md:w-1/2 p-4 flex flex-wrap gap-4">
         {selectedFiles.length > 0 ? (
           selectedFiles.map((file, index) => (
-            <Image
+            <img
               key={index}
               src={file}
               alt={`Selected Preview ${index + 1}`}
