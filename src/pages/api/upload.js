@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 
 // Set the output directory for cropped images
-const OutputDir = './public/cropped';
+const OutputDir = './tmp/cropped';
 
 // Ensure the output directory exists
 fs.mkdirSync(OutputDir, { recursive: true });
@@ -12,7 +12,7 @@ fs.mkdirSync(OutputDir, { recursive: true });
 // Multer setup for file handling
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = './public/uploads'; // Directory where the uploaded images are stored
+    const uploadDir = './tmp/uploads'; // Directory where the uploaded images are stored
     // Ensure the directory exists
     fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
