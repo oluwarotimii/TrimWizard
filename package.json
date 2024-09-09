@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^1.0.6",
     "animate.css": "^4.1.1",
+    "archiver": "^7.0.1",
     "formidable": "^2.0.1",
     "jimp": "^0.16.1",
     "multer": "^1.4.5-lts.1",

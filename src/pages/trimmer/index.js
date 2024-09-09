@@ -1,18 +1,19 @@
-"use client";
-
 import { useState } from 'react';
-import '@/styles/globals.css';
+import { FaCloudUploadAlt, FaDownload } from 'react-icons/fa';
 import Image from 'next/image';
-import Loading from '@/components/loading';
+import '@/styles/globals.css'
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [message, setMessage] = useState('');
+  const [thumbnails, setThumbnails] = useState([]);
+  const [message, setMessage] = useState("");
+  const [downloadLink, setDownloadLink] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files || []); // Handle  empty files
-    setSelectedFiles(files.map(file => URL.createObjectURL(file)));
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(files);
+    setThumbnails(files.map(file => URL.createObjectURL(file)));
   };
 
   const handleSubmit = async (event) => {
@@ -20,78 +21,79 @@ export default function Home() {
     if (selectedFiles.length === 0) return;
 
     setLoading(true);
-
     const formData = new FormData();
-    const files = event.target.elements[0].files; // Access the file input directly
-
-    if (files) {
-      Array.from(files).forEach(file => formData.append('files', file));
-    } else {
-      console.error('No files selected');
-      setLoading(false);
-      return;
-    }
+    selectedFiles.forEach(file => formData.append('files', file));
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
+      const res = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
       const data = await res.json();
       setMessage(data.message);
+      setDownloadLink(data.downloadLink);
     } catch (error) {
-      setMessage('An error occurred. Please try again.');
+      setMessage("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-gray-50">
-      {loading && <Loading />}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+      {loading && <div className="text-center text-gray-700">Loading...</div>}
 
-      {/* Image Preview Section */}
-      <div className="w-full md:w-1/2 p-4 flex flex-wrap gap-4">
-        {selectedFiles.length > 0 ? (
-          selectedFiles.map((file, index) => (
-            <img
-              key={index}
-              src={file}
-              alt={`Selected Preview ${index + 1}`}
-              className="object-cover w-32 h-32 md:w-48 md:h-48 rounded-lg shadow-lg"
-            />
-          ))
-        ) : (
-          <div className="flex items-center justify-center w-full h-64 md:h-auto border border-gray-300 rounded-lg shadow-md">
-            <p className="text-gray-500">No images selected</p>
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
+        <h2 className="text-2xl font-bold text-center mb-4">Upload and Crop Images</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            multiple
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+          />
+          <button
+            type="submit"
+            className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center gap-2 hover:bg-indigo-700"
+          >
+            <FaCloudUploadAlt className="h-5 w-5" />
+            Upload and Crop
+          </button>
+        </form>
+
+        {message && (
+          <p className="mt-4 text-center text-green-600">{message}</p>
+        )}
+
+        {/* Display image previews */}
+        <div className="mt-6">
+          {thumbnails.length > 0 ? (
+            <div className="flex flex-wrap gap-4 justify-center">
+              {thumbnails.map((thumb, index) => (
+                <div key={index} className="w-32 h-32 relative">
+                  <Image src={thumb} alt={`Preview ${index + 1}`} layout="fill" objectFit="cover" className="rounded-md shadow-md" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No images selected</p>
+          )}
+        </div>
+
+        {/* Display download button */}
+        {downloadLink && (
+          <div className="mt-6 text-center">
+            <a
+              href={downloadLink}
+              download
+              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700"
+            >
+              <FaDownload className="h-5 w-5" />
+              Download Cropped Images
+            </a>
           </div>
         )}
-      </div>
-
-      {/* Upload Form Section */}
-      <div className="w-full md:w-1/2 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold text-center mb-6">Image Upload and Crop</h1>
-
-          <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
-            <input
-              type="file"
-              onChange={handleFileChange}
-              multiple
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-md hover:bg-indigo-700 transition duration-300 ease-in-out"
-            >
-              Upload
-            </button>
-          </form>
-
-          {message && <p className="mt-4 text-green-500 text-center">{message}</p>}
-        </div>
       </div>
     </div>
   );
