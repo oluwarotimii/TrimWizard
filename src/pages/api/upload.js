@@ -1,16 +1,15 @@
-// Updated API handler in /api/upload.js
 import multer from 'multer';
 import Jimp from 'jimp';
 import path from 'path';
 import fs from 'fs';
 import archiver from 'archiver';
 
-const OutputDir = './tmp/cropped';
+const OutputDir = '/tmp/cropped';  // Updated for Vercel writable directory
 fs.mkdirSync(OutputDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = './tmp/uploads';
+    const uploadDir = '/tmp/uploads';  // Updated for Vercel writable directory
     fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
@@ -74,7 +73,7 @@ export default async function handler(req, res) {
       }
 
       if (croppedImages.length > 0) {
-        const zipFilePath = './tmp/cropped-images.zip';
+        const zipFilePath = '/tmp/cropped-images.zip';  // Updated for Vercel writable directory
         const output = fs.createWriteStream(zipFilePath);
         const archive = archiver('zip');
 
