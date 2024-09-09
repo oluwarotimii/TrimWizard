@@ -43,7 +43,7 @@ export default function Landing() {
             Download & Share
           </h2>
           <p className="text-lg">
-            Download your edited images or share them directly from the platform.
+            Download your edited images.
           </p>
         </div>
       </section>
