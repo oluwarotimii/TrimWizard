@@ -11,10 +11,11 @@ export default function Landing() {
         <p className="text-xl mb-6 animate__animated animate__fadeIn animate__delay-2s">
           The ultimate tool for image cropping and editing.
         </p>
-        <Link href="/upload">
-          <a className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold transition-transform transform hover:scale-105 hover:shadow-xl animate__animated animate__fadeIn animate__delay-3s">
-            Get Started
-          </a>
+        <Link 
+          href="/trimmer"
+          className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold transition-transform transform hover:scale-105 hover:shadow-xl animate__animated animate__fadeIn animate__delay-3s"
+        >
+          Get Started
         </Link>
       </header>
 
