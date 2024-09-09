@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import '@/styles/globals.css';
 import Image from 'next/image';
-import Loading from '../../components/Loading';
+import Loading from '@/components/Loading';
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
