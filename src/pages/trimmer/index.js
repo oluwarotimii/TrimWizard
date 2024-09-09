@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import '@/styles/globals.css';
-import Loading from '@/components/Loading';
+import Image from 'next/image';
+import Loading from '../../components/Loading';
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -54,7 +55,7 @@ export default function Home() {
       <div className="w-full md:w-1/2 p-4 flex flex-wrap gap-4">
         {selectedFiles.length > 0 ? (
           selectedFiles.map((file, index) => (
-            <img
+            <Image
               key={index}
               src={file}
               alt={`Selected Preview ${index + 1}`}

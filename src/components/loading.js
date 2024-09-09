@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FaSpinner } from 'react-icons/fa';
-import '@/styles/globals.css';
+import '../styles/globals.css';
 
 const Loading = () => {
   return (
