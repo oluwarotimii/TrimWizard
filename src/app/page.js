@@ -5,6 +5,7 @@ export default function Landing() {
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white">
       {/* Header */}
       <header className="text-center mb-10">
+        <title> Trim Wizard</title>
         <h1 className="text-5xl font-bold mb-4 animate__animated animate__fadeIn animate__delay-1s">
           Welcome to TrimWizard
         </h1>
