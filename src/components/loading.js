@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { FaSpinner } from 'react-icons/fa'; // Import spinner icon from react-icons
+import { FaSpinner } from 'react-icons/fa';
+import '@/styles/globals.css';
 
 const Loading = () => {
   return (
