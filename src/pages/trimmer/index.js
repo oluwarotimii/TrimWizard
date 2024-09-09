@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import '@/styles/globals.css';
 import Image from 'next/image';
-import Loading from '@/components/Loading';
+import Loading from '@/components/loading';
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -11,7 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files || []); // Handle undefined or empty files
+    const files = Array.from(event.target.files || []); // Handle  empty files
     setSelectedFiles(files.map(file => URL.createObjectURL(file)));
   };
 
