@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 export default function handler(req, res) {
-  if (req.method === 'GET') {
+  if (req.method === 'POST') {
     const file = req.query.file;
     const filePath = path.resolve('./tmp', file);
 

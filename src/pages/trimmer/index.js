@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { FaCloudUploadAlt, FaDownload } from 'react-icons/fa';
 import Image from 'next/image';
-import '@/styles/globals.css'
+import '@/styles/globals.css';
+import Loading from '@/components/loading';
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -42,7 +43,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      {loading && <div className="text-center text-gray-700">Loading...</div>}
+      {loading && <Loading />}
 
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
         <h2 className="text-2xl font-bold text-center mb-4">Upload and Crop Images</h2>
