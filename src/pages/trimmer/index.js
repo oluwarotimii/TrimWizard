@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import '@/styles/globals.css';
+import Loading from '@/components/Loading';
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
+    const files = Array.from(event.target.files || []); // Handle undefined or empty files
     setSelectedFiles(files.map(file => URL.createObjectURL(file)));
   };
 
@@ -16,20 +18,38 @@ export default function Home() {
     event.preventDefault();
     if (selectedFiles.length === 0) return;
 
+    setLoading(true);
+
     const formData = new FormData();
-    Array.from(event.target.files).forEach(file => formData.append('files', file));
+    const files = event.target.elements[0].files; // Access the file input directly
 
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    if (files) {
+      Array.from(files).forEach(file => formData.append('files', file));
+    } else {
+      console.error('No files selected');
+      setLoading(false);
+      return;
+    }
 
-    const data = await res.json();
-    setMessage(data.message);
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      setMessage(data.message);
+    } catch (error) {
+      setMessage('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-gray-50">
+      {loading && <Loading />}
+
       {/* Image Preview Section */}
       <div className="w-full md:w-1/2 p-4 flex flex-wrap gap-4">
         {selectedFiles.length > 0 ? (

@@ -59,8 +59,8 @@ async function cropImage(imagePath) {
   }
 }
 
-// Multer middleware for handling single file uploads
-const uploadMiddleware = upload.single('file');
+// Multer middleware for handling multiple file uploads
+const uploadMiddleware = upload.array('files'); // Adjusted to handle multiple files
 
 // Next.js API handler
 export default async function handler(req, res) {
@@ -77,14 +77,15 @@ export default async function handler(req, res) {
         });
       });
 
-      // The uploaded file is stored in req.file
-      const uploadedFilePath = req.file.path;
-
-      // Crop the uploaded image
-      await cropImage(uploadedFilePath);
+      // Process each uploaded file
+      if (req.files) {
+        for (const file of req.files) {
+          await cropImage(file.path);
+        }
+      }
 
       // Send success response
-      res.status(200).json({ message: 'File uploaded and cropped successfully!' });
+      res.status(200).json({ message: 'Files uploaded and cropped successfully!' });
     } catch (error) {
       console.error('Error during file upload/cropping:', error);
       res.status(500).json({ message: 'An error occurred during file upload or cropping.' });
