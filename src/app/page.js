@@ -50,7 +50,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="text-center py-6 mt-10 border-t border-white">
         <p className="text-sm">
-          &copy; {new Date().getFullYear()} TrimWizard. All rights reserved.
+          &copy; {new Date().getFullYear()} Oluwarotimi. All rights reserved.
         </p>
       </footer>
     </div>
