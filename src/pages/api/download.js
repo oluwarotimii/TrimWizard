@@ -1,19 +1,22 @@
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
 export default function handler(req, res) {
-  if (req.method === 'GET') {
-    const file = req.query.file;
-    const filePath = path.resolve('./tmp', file);
+  const { file } = req.query;
 
-    if (fs.existsSync(filePath)) {
-      res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', `attachment; filename=${file}`);
-      fs.createReadStream(filePath).pipe(res);
-    } else {
-      res.status(404).json({ message: 'File not found.' });
-    }
+  if (!file) {
+    return res.status(400).json({ message: 'No file specified' });
+  }
+
+  const filePath = path.join('/tmp/cropped', file);  // Make sure this path matches where the zip files are stored
+
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=${path.basename(filePath)}`);
+
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
   } else {
-    res.status(405).json({ message: 'Method not allowed' });
+    return res.status(404).json({ message: 'File not found' });
   }
 }

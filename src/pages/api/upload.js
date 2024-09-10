@@ -3,15 +3,22 @@ import Jimp from 'jimp';
 import path from 'path';
 import fs from 'fs';
 import archiver from 'archiver';
+import { v4 as uuidv4 } from 'uuid';  // For session-specific folders
 
-const OutputDir = '/tmp/cropped';  // Updated for Vercel writable directory
-fs.mkdirSync(OutputDir, { recursive: true });
+const baseDir = '/tmp'; // Ensure it works on Vercel
+const uploadDir = `${baseDir}/uploads`;
+const croppedDir = `${baseDir}/cropped`;
+
+// Ensure directories exist
+fs.mkdirSync(uploadDir, { recursive: true });
+fs.mkdirSync(croppedDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = '/tmp/uploads';  // Updated for Vercel writable directory
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
+    const sessionId = req.sessionId;
+    const sessionUploadDir = `${uploadDir}/${sessionId}`;
+    fs.mkdirSync(sessionUploadDir, { recursive: true });
+    cb(null, sessionUploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + '-' + file.originalname);
@@ -24,7 +31,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-async function cropImage(imagePath) {
+async function cropImage(imagePath, sessionId) {
   try {
     const image = await Jimp.read(imagePath);
     const fileName = path.basename(imagePath);
@@ -37,7 +44,9 @@ async function cropImage(imagePath) {
 
     if (newWidth > 0 && newHeight > 0) {
       const croppedImage = image.crop(0, 0, newWidth, newHeight);
-      const outputFilePath = path.join(OutputDir, `cropped-${fileName}`);
+      const sessionCroppedDir = `${croppedDir}/${sessionId}`;
+      fs.mkdirSync(sessionCroppedDir, { recursive: true });
+      const outputFilePath = path.join(sessionCroppedDir, `cropped-${fileName}`);
       await croppedImage.writeAsync(outputFilePath);
       return outputFilePath;
     } else {
@@ -55,6 +64,10 @@ const uploadMiddleware = upload.array('files');
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
+      // Generate a session-specific ID for each request
+      const sessionId = uuidv4();
+      req.sessionId = sessionId;
+
       await new Promise((resolve, reject) => {
         uploadMiddleware(req, res, (err) => {
           if (err) reject(err);
@@ -65,7 +78,7 @@ export default async function handler(req, res) {
       const croppedImages = [];
       if (req.files) {
         for (const file of req.files) {
-          const croppedImagePath = await cropImage(file.path);
+          const croppedImagePath = await cropImage(file.path, sessionId);
           if (croppedImagePath) {
             croppedImages.push(croppedImagePath);
           }
@@ -73,14 +86,14 @@ export default async function handler(req, res) {
       }
 
       if (croppedImages.length > 0) {
-        const zipFilePath = '/tmp/cropped-images.zip';  // Updated for Vercel writable directory
+        const zipFilePath = `${croppedDir}/${sessionId}/cropped-images.zip`;
         const output = fs.createWriteStream(zipFilePath);
         const archive = archiver('zip');
 
         output.on('close', () => {
           res.status(200).json({
             message: 'Images cropped and saved successfully.',
-            downloadLink: `/api/download?file=cropped-images.zip`
+            downloadLink: `/api/download?file=${sessionId}/cropped-images.zip`
           });
         });
 
