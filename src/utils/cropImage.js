@@ -1,34 +1,38 @@
-import { createImage, getCroppedImg } from "react-easy-crop";
+// utils/cropImage.js
 
-export default async function getCroppedImg(imageSrc, crop) {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = crop.width;
-  canvas.height = crop.height;
-
-  ctx.drawImage(
-    image,
-    crop.x, // Start cropping from X coordinate
-    crop.y, // Start cropping from Y coordinate
-    crop.width,
-    crop.height,
-    0, // Place at 0 X of new canvas
-    0, // Place at 0 Y of new canvas
-    crop.width,
-    crop.height
-  );
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        console.error("Canvas is empty");
-        reject(new Error("Canvas is empty"));
-        return;
-      }
-      const fileUrl = URL.createObjectURL(blob);
-      resolve(fileUrl);
-    }, "image/jpeg");
-  });
-}
+export const getCroppedImg = async (imageSrc, pixelCrop) => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+  
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+  
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
+  
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(URL.createObjectURL(blob));
+      }, 'image/jpeg');
+    });
+  };
+  
+  // Helper function to create an image element
+  const createImage = (url) => 
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener('load', () => resolve(image));
+      image.addEventListener('error', (error) => reject(error));
+      image.src = url;
+    });
+  
