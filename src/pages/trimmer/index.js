@@ -1,55 +1,63 @@
-import { useState } from 'react';
-import { FaCloudUploadAlt, FaDownload } from 'react-icons/fa';
-import Image from 'next/image';
+import React, { useState, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import { FaCloudUploadAlt, FaDownload } from "react-icons/fa";
+import Image from "next/image";
 import '@/styles/globals.css';
 import Loading from '@/components/loading';
+import getCroppedImg from '@/utils/cropImage'; // Utility function to extract cropped image
 
 export default function Home() {
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [thumbnails, setThumbnails] = useState([]);
-  const [message, setMessage] = useState("");
-  const [downloadLink, setDownloadLink] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // List of valid image formats
-  const validFormats = ['image/jpeg', 'image/png', 'image/jpg'];
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files || []);
-
-    // Validate file formats
-    const validFiles = files.filter(file => validFormats.includes(file.type));
-
-    if (validFiles.length !== files.length) {
-      setMessage("Only JPG and PNG formats are allowed. Please remove any unsupported files.");
-    } else {
-      setMessage(""); // Clear any previous error message if all files are valid
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setImageSrc(reader.result);
+      reader.readAsDataURL(file);
+      setSelectedFile(file);
     }
-
-    // Set the valid files and their thumbnails
-    setSelectedFiles(validFiles);
-    setThumbnails(validFiles.map(file => URL.createObjectURL(file)));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (selectedFiles.length === 0) return;
+  const handleCrop = async () => {
+    try {
+      setLoading(true);
+      const croppedImageData = await getCroppedImg(imageSrc, croppedAreaPixels);
+      setCroppedImage(croppedImageData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error cropping the image: ", error);
+      setLoading(false);
+    }
+  };
 
-    setLoading(true);
+  const handleSubmit = async () => {
+    if (!croppedImage) return;
+
     const formData = new FormData();
-    selectedFiles.forEach(file => formData.append('files', file));
+    formData.append('file', croppedImage);
 
     try {
+      setLoading(true);
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
       const data = await res.json();
-      setMessage(data.message);
-      setDownloadLink(data.downloadLink);
+      console.log(data.message);
     } catch (error) {
-      setMessage("An error occurred. Please try again.");
+      console.error("Upload error: ", error);
     } finally {
       setLoading(false);
     }
@@ -59,61 +67,58 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       {loading && <Loading />}
 
-      {/* If the download link is ready, display only the download section */}
-      {downloadLink ? (
-        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl text-center">
-          <p className="text-green-600 mb-4">Your images are ready for download!</p>
-          <a
-            href={downloadLink}
-            download
-            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 justify-center"
-          >
-            <FaDownload className="h-5 w-5" />
-            Download Cropped Images
-          </a>
-        </div>
-      ) : (
-        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
-          <h2 className="text-2xl font-bold text-center mb-4">Upload and Crop Images</h2>
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
+        <h2 className="text-2xl font-bold text-center mb-4">Upload and Crop Image</h2>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <input
-              type="file"
-              onChange={handleFileChange}
-              accept=".jpg,.jpeg,.png"  // Restrict file types at input level
-              multiple
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="w-full mb-4 p-2 border border-gray-300 rounded-md"
+        />
+
+        {imageSrc && (
+          <div className="relative w-full h-96 bg-gray-200">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={4 / 3}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
             />
+          </div>
+        )}
+
+        <div className="flex items-center gap-4 mt-4">
+          <button
+            onClick={handleCrop}
+            className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center gap-2 hover:bg-indigo-700"
+            disabled={!imageSrc || loading}
+          >
+            Crop Image
+          </button>
+
+          {croppedImage && (
             <button
-              type="submit"
-              className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center gap-2 hover:bg-indigo-700"
-              disabled={selectedFiles.length === 0 || loading}
+              onClick={handleSubmit}
+              className="bg-green-600 text-white py-2 px-4 rounded-md flex items-center gap-2 hover:bg-green-700"
+              disabled={loading}
             >
               <FaCloudUploadAlt className="h-5 w-5" />
-              Upload and Crop
+              Upload Cropped Image
             </button>
-          </form>
-
-          {message && (
-            <p className="mt-4 text-center text-red-600">{message}</p>
           )}
-
-          {/* Display image previews */}
-          <div className="mt-6">
-            {thumbnails.length > 0 ? (
-              <div className="flex flex-wrap gap-4 justify-center">
-                {thumbnails.map((thumb, index) => (
-                  <div key={index} className="w-32 h-32 relative">
-                    <Image src={thumb} alt={`Preview ${index + 1}`} layout="fill" objectFit="cover" className="rounded-md shadow-md" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">No images selected</p>
-            )}
-          </div>
         </div>
-      )}
+
+        {croppedImage && (
+          <div className="mt-6">
+            <h3 className="text-lg font-bold mb-2">Cropped Image Preview:</h3>
+            <img src={croppedImage} alt="Cropped Preview" className="rounded-md shadow-md" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
