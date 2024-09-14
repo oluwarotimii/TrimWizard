@@ -25,7 +25,20 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    files: 500,  
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true); // Accept the file
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and JPG formats are allowed.'));
+    }
+  },
+});
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -59,7 +72,7 @@ async function cropImage(imagePath, sessionId) {
   }
 }
 
-const uploadMiddleware = upload.array('files');
+const uploadMiddleware = upload.array('files', 10); // Set file limit to 10
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -68,10 +81,22 @@ export default async function handler(req, res) {
       const sessionId = uuidv4();
       req.sessionId = sessionId;
 
+      // Use a promise to handle file uploads and any Multer errors
       await new Promise((resolve, reject) => {
         uploadMiddleware(req, res, (err) => {
-          if (err) reject(err);
-          else resolve();
+          if (err instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (err.code === 'LIMIT_FILE_COUNT') {
+              reject(new Error('File limit exceeded. Maximum 10 files are allowed.'));
+            } else {
+              reject(new Error(`Multer error: ${err.message}`));
+            }
+          } else if (err) {
+            // Handle other errors like invalid file types
+            reject(err);
+          } else {
+            resolve();
+          }
         });
       });
 
@@ -93,7 +118,7 @@ export default async function handler(req, res) {
         output.on('close', () => {
           res.status(200).json({
             message: 'Images cropped and saved successfully.',
-            downloadLink: `/api/download?file=${sessionId}/cropped-images.zip`
+            downloadLink: `/api/download?file=${sessionId}/cropped-images.zip`,
           });
         });
 
@@ -112,7 +137,15 @@ export default async function handler(req, res) {
       }
     } catch (error) {
       console.error('Error during file upload/cropping:', error);
-      res.status(500).json({ message: 'An error occurred during file upload or cropping.' });
+
+      // Sending user-friendly error messages based on the type of error
+      if (error.message.includes('Invalid file type')) {
+        res.status(400).json({ message: error.message });
+      } else if (error.message.includes('File limit exceeded')) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'An unexpected error occurred during file upload or cropping.' });
+      }
     }
   } else {
     res.status(405).json({ message: 'Method not allowed' });

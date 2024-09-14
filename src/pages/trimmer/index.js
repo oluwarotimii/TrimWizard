@@ -11,10 +11,24 @@ export default function Home() {
   const [downloadLink, setDownloadLink] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // List of valid image formats
+  const validFormats = ['image/jpeg', 'image/png', 'image/jpg'];
+
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files || []);
-    setSelectedFiles(files);
-    setThumbnails(files.map(file => URL.createObjectURL(file)));
+
+    // Validate file formats
+    const validFiles = files.filter(file => validFormats.includes(file.type));
+
+    if (validFiles.length !== files.length) {
+      setMessage("Only JPG and PNG formats are allowed. Please remove any unsupported files.");
+    } else {
+      setMessage(""); // Clear any previous error message if all files are valid
+    }
+
+    // Set the valid files and their thumbnails
+    setSelectedFiles(validFiles);
+    setThumbnails(validFiles.map(file => URL.createObjectURL(file)));
   };
 
   const handleSubmit = async (event) => {
@@ -66,12 +80,14 @@ export default function Home() {
             <input
               type="file"
               onChange={handleFileChange}
+              accept=".jpg,.jpeg,.png"  // Restrict file types at input level
               multiple
               className="w-full px-4 py-2 border border-gray-300 rounded-md"
             />
             <button
               type="submit"
               className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center gap-2 hover:bg-indigo-700"
+              disabled={selectedFiles.length === 0 || loading}
             >
               <FaCloudUploadAlt className="h-5 w-5" />
               Upload and Crop
@@ -79,7 +95,7 @@ export default function Home() {
           </form>
 
           {message && (
-            <p className="mt-4 text-center text-green-600">{message}</p>
+            <p className="mt-4 text-center text-red-600">{message}</p>
           )}
 
           {/* Display image previews */}
