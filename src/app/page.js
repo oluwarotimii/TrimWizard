@@ -29,7 +29,7 @@ export default function Landing() {
       {/* Header */}
       <header className="text-center mb-10">
         <title>Trim Wizard</title>
-        <h1 className="text-5xl font-bold mb-4 animate__animated animate__fadeIn animate__delay-1s">
+        <h1 className="text-5xl m-20 font-bold mb-4 animate__animated animate__fadeIn animate__delay-1s">
           Welcome to TrimWizard
         </h1>
         <p className="text-xl mb-6 animate__animated animate__fadeIn animate__delay-2s">
