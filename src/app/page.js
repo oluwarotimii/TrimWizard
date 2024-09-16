@@ -1,11 +1,34 @@
 import Link from 'next/link';
-
+import PriceCard from '@/components/priceCard';
 export default function Landing() {
+  const pricingPlans = [
+    {
+      planName: 'Free',
+      price: 'Try for Free',
+      features: {
+        description: 'Basic image cropping with limited features.',
+        details: ['Up to 5 images', 'No watermark'],
+      },
+      link: '/trimmer',
+      color: 'blue',
+    },
+    {
+      planName: 'Basic',
+      price: '₦5,000/month',
+      features: {
+        description: 'Advanced cropping features and higher image limits.',
+        details: ['Unlimted cropoing of images', 'No watermark, faster processing'],
+      },
+      link: '/subscribe/basic',
+      color: 'blue',
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white">
       {/* Header */}
       <header className="text-center mb-10">
-        <title> Trim Wizard</title>
+        <title>Trim Wizard</title>
         <h1 className="text-5xl font-bold mb-4 animate__animated animate__fadeIn animate__delay-1s">
           Welcome to TrimWizard
         </h1>
@@ -45,6 +68,23 @@ export default function Landing() {
           <p className="text-lg">
             Download your edited images.
           </p>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="w-full max-w-6xl mx-auto px-6 md:px-12 py-16 text-gray-800 text-center">
+        <h2 className="text-4xl font-bold mb-8">Choose Your Plan</h2>
+        <div className="flex flex-col md:flex-row justify-center items-center md:space-x-6">
+          {pricingPlans.map((plan, index) => (
+            <PriceCard 
+              key={index} 
+              planName={plan.planName} 
+              price={plan.price} 
+              features={plan.features} 
+              link={plan.link} 
+              color={plan.color} 
+            />
+          ))}
         </div>
       </section>
 
