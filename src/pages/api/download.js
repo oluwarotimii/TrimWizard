@@ -2,17 +2,17 @@ import fs from 'fs';
 import path from 'path';
 
 export default function handler(req, res) {
-  const { file } = req.query;
+  const { sessionId } = req.query;
 
-  if (!file) {
-    return res.status(400).json({ message: 'No file specified' });
+  if (!sessionId) {
+    return res.status(400).json({ message: 'No session ID specified' });
   }
 
-  const filePath = path.join('/tmp/cropped', file);  // Make sure this path matches where the zip files are stored
+  const filePath = path.join('/tmp/cropped', sessionId, 'cropped-images.zip');
 
   if (fs.existsSync(filePath)) {
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename=${path.basename(filePath)}`);
+    res.setHeader('Content-Disposition', `attachment; filename=cropped-images.zip`);
 
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
