@@ -6,7 +6,7 @@ import archiver from 'archiver';
 import { v4 as uuidv4 } from 'uuid';
 
 // Configure directories
-const baseDir = '/tmp'; 
+const baseDir = '/tmp';
 const uploadDir = `${baseDir}/uploads`;
 const croppedDir = `${baseDir}/cropped`;
 
@@ -41,16 +41,21 @@ const upload = multer({
   },
 });
 
-// Function to crop images
-async function cropImage(imagePath, cropWidth, cropHeight, x, y, sessionId) {
+// Function to crop images dynamically based on their dimensions
+async function cropImageDynamically(imagePath, sessionId) {
   try {
     const image = await Jimp.read(imagePath);
     const fileName = path.basename(imagePath);
 
-    const newWidth = Math.min(cropWidth, image.bitmap.width - x);
-    const newHeight = Math.min(cropHeight, image.bitmap.height - y);
+    // Calculate crop dimensions dynamically (center crop)
+    const { width, height } = image.bitmap;
+    const cropWidth = Math.min(width, height); // Center square crop
+    const cropHeight = cropWidth;
+    const x = (width - cropWidth) / 2;  // Start cropping from center
+    const y = (height - cropHeight) / 2;
 
-    const croppedImage = image.crop(x, y, newWidth, newHeight);
+    // Crop the image
+    const croppedImage = image.crop(x, y, cropWidth, cropHeight);
     const sessionCroppedDir = `${croppedDir}/${sessionId}`;
     fs.mkdirSync(sessionCroppedDir, { recursive: true });
     const outputFilePath = path.join(sessionCroppedDir, `cropped-${fileName}`);
@@ -90,22 +95,12 @@ export default async function handler(req, res) {
         });
       });
 
-      // Check required cropping parameters
-      const { cropWidth, cropHeight, x, y } = req.body;
-      if (!cropWidth || !cropHeight || !x || !y) {
-        return res.status(400).json({ message: 'Missing cropping parameters' });
-      }
-
       const croppedImagePaths = [];
 
-      // Crop images
+      // Crop images dynamically
       for (const file of req.files) {
-        const croppedImagePath = await cropImage(
+        const croppedImagePath = await cropImageDynamically(
           file.path,
-          parseInt(cropWidth),
-          parseInt(cropHeight),
-          parseInt(x),
-          parseInt(y),
           sessionId
         );
         if (croppedImagePath) {
