@@ -41,21 +41,21 @@ const upload = multer({
   },
 });
 
-// Function to crop images dynamically based on their dimensions
-async function cropImageDynamically(imagePath, sessionId) {
+// Function to crop images based on pixels to remove from all sides
+async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) {
   try {
     const image = await Jimp.read(imagePath);
     const fileName = path.basename(imagePath);
 
-    // Calculate crop dimensions dynamically (center crop)
+    // Ensure that cropping values don't result in negative dimensions
     const { width, height } = image.bitmap;
-    const cropWidth = Math.min(width, height); // Center square crop
-    const cropHeight = cropWidth;
-    const x = (width - cropWidth) / 2;  // Start cropping from center
-    const y = (height - cropHeight) / 2;
+    const newWidth = Math.max(1, width - left - right);  // Minimum width should be 1 pixel
+    const newHeight = Math.max(1, height - top - bottom); // Minimum height should be 1 pixel
+    const x = Math.max(0, left);  // Ensure the left crop doesn't exceed image bounds
+    const y = Math.max(0, top);   // Ensure the top crop doesn't exceed image bounds
 
     // Crop the image
-    const croppedImage = image.crop(x, y, cropWidth, cropHeight);
+    const croppedImage = image.crop(x, y, newWidth, newHeight);
     const sessionCroppedDir = `${croppedDir}/${sessionId}`;
     fs.mkdirSync(sessionCroppedDir, { recursive: true });
     const outputFilePath = path.join(sessionCroppedDir, `cropped-${fileName}`);
@@ -97,11 +97,18 @@ export default async function handler(req, res) {
 
       const croppedImagePaths = [];
 
-      // Crop images dynamically
+      // Get cropping details from request body (pixels to remove from each side)
+      const { top, bottom, left, right } = req.body;
+
+      // Crop images based on user-defined pixels to remove from each side
       for (const file of req.files) {
-        const croppedImagePath = await cropImageDynamically(
+        const croppedImagePath = await cropImageBySides(
           file.path,
-          sessionId
+          sessionId,
+          parseInt(top),
+          parseInt(bottom),
+          parseInt(left),
+          parseInt(right)
         );
         if (croppedImagePath) {
           croppedImagePaths.push(croppedImagePath);
