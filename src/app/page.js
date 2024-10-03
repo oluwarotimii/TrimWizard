@@ -1,26 +1,27 @@
 import Link from 'next/link';
 import PriceCard from '@/components/priceCard';
+
 export default function Landing() {
   const pricingPlans = [
     {
+      id: 1,
       planName: 'Free',
       price: 'Try for Free',
       features: {
         description: 'Basic image cropping with limited features.',
         details: ['Up to 5 images', 'No watermark'],
       },
-      link: '/trimmer',
-      color: 'blue',
+      account: 'Account No: 123456789',
     },
     {
+      id: 2,
       planName: 'Basic',
       price: '₦5,000/month',
       features: {
         description: 'Advanced cropping features and higher image limits.',
-        details: ['Unlimted cropoing of images', 'No watermark, faster processing'],
+        details: ['Unlimited cropping of images', 'No watermark, faster processing'],
       },
-      link: '/subscribe/basic',
-      color: 'blue',
+      account: 'Account No: 987654321',
     },
   ];
 
@@ -29,15 +30,11 @@ export default function Landing() {
       {/* Header */}
       <header className="text-center mb-10">
         <title>Trim Wizard</title>
-        <h1 className="text-5xl m-20 font-bold mb-4 animate__animated animate__fadeIn animate__delay-1s">
-          Welcome to TrimWizard
-        </h1>
-        <p className="text-xl mb-6 animate__animated animate__fadeIn animate__delay-2s">
-          The ultimate tool for image cropping and editing.
-        </p>
+        <h1 className="text-5xl m-20 font-bold mb-4">Welcome to TrimWizard</h1>
+        <p className="text-xl mb-6">The ultimate tool for image cropping and editing.</p>
         <Link 
           href="/trimmer"
-          className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold transition-transform transform hover:scale-105 hover:shadow-xl animate__animated animate__fadeIn animate__delay-3s"
+          className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold transition-transform transform hover:scale-105 hover:shadow-xl"
         >
           Get Started
         </Link>
@@ -72,21 +69,29 @@ export default function Landing() {
       </section>
 
       {/* Pricing Section */}
-      <section className="w-full max-w-6xl mx-auto px-6 md:px-12 py-16 text-gray-800 text-center">
-        <h2 className="text-4xl font-bold mb-8">Choose Your Plan</h2>
-        <div className="flex flex-col md:flex-row justify-center items-center md:space-x-6">
-          {pricingPlans.map((plan, index) => (
-            <PriceCard 
-              key={index} 
-              planName={plan.planName} 
-              price={plan.price} 
-              features={plan.features} 
-              link={plan.link} 
-              color={plan.color} 
-            />
-          ))}
-        </div>
-      </section>
+   {/* Pricing Section */}
+<section className="w-full max-w-6xl mx-auto px-6 md:px-12 py-16 text-gray-800 text-center">
+  <h2 className="text-4xl font-bold mb-8">Choose Your Plan</h2>
+  <div className="flex flex-col md:flex-row justify-center items-center md:space-x-6 mb-10"> {/* Add margin-bottom here */}
+    {pricingPlans.map((plan, index) => (
+      <PriceCard 
+        key={index} 
+        planName={plan.planName} 
+        price={plan.price} 
+        features={plan.features} 
+        link={`/subscribe/${plan.planName.toLowerCase()}`} 
+        color="blue" 
+      />
+    ))}
+  </div>
+  <Link 
+    href="/pay"  // corrected from "/pay" to "/payment"
+    className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold mt-6"
+  >
+    Proceed to Payment
+  </Link>
+</section>
+
 
       {/* Footer */}
       <footer className="text-center py-6 mt-10 border-t border-white">
