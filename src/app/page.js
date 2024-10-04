@@ -5,18 +5,8 @@ export default function Landing() {
   const pricingPlans = [
     {
       id: 1,
-      planName: 'Free',
-      price: 'Try for Free',
-      features: {
-        description: 'Basic image cropping with limited features.',
-        details: ['Up to 5 images', 'No watermark'],
-      },
-      account: 'Account No: 123456789',
-    },
-    {
-      id: 2,
       planName: 'Basic',
-      price: '₦5,000/month',
+      price: '₦5,000 /month',
       features: {
         description: 'Advanced cropping features and higher image limits.',
         details: ['Unlimited cropping of images', 'No watermark, faster processing'],
@@ -72,7 +62,7 @@ export default function Landing() {
    {/* Pricing Section */}
 <section className="w-full max-w-6xl mx-auto px-6 md:px-12 py-16 text-gray-800 text-center">
   <h2 className="text-4xl font-bold mb-8">Choose Your Plan</h2>
-  <div className="flex flex-col md:flex-row justify-center items-center md:space-x-6 mb-10"> {/* Add margin-bottom here */}
+  <div className="flex flex-col md:flex-row justify-center items-center md:space-x-6 mb-10"> 
     {pricingPlans.map((plan, index) => (
       <PriceCard 
         key={index} 
@@ -85,10 +75,17 @@ export default function Landing() {
     ))}
   </div>
   <Link 
-    href="/pay"  // corrected from "/pay" to "/payment"
+    href="/pay"  
     className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold mt-6"
   >
     Proceed to Payment
+  </Link>
+
+  <Link 
+    href="/trimmer"  
+    className="bg-white text-blue-500  mx-5 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold mt-6"
+  >
+    Free trial
   </Link>
 </section>
 
