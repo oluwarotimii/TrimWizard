@@ -33,7 +33,7 @@ export default function Landing() {
         <h1 className="text-5xl m-20 font-bold mb-4">Welcome to TrimWizard</h1>
         <p className="text-xl mb-6">The ultimate tool for image cropping and editing.</p>
         <Link 
-          href="/trimmer"
+          href="/auth"
           className="bg-white text-blue-500 px-6 py-3 rounded-lg shadow-lg text-lg font-semibold transition-transform transform hover:scale-105 hover:shadow-xl"
         >
           Get Started
