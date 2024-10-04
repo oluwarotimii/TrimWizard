@@ -23,17 +23,13 @@ export default function AuthPage() {
       const data = await res.json();
 
       if (res.ok) {
-        if (data.exists) {
-          setMessage('Email found! Redirecting...');
-          // Redirect to the desired page after a short delay
-          setTimeout(() => {
-            router.push('/trimmer'); // Replace with your desired route
-          }, 2000);
-        } else {
-          setMessage('Email not found. Please check your email or sign up.');
-        }
+        setMessage('Email found! Redirecting...');
+        // Optionally, redirect to the desired page after a short delay
+        setTimeout(() => {
+          router.push('/trimmer'); // Replace with your desired route
+        }, 2000);
       } else {
-        setMessage(`Error: ${data.error || 'An unexpected error occurred.'}`);
+        setMessage(`Error: ${data.error || 'User not found.'}`);
       }
     } catch (error) {
       console.error('Request failed:', error);
@@ -66,12 +62,12 @@ export default function AuthPage() {
             }`}
             disabled={loading}
           >
-            {loading ? 'Checking...' : 'Check Email'}
+            {loading ? 'Submitting...' : 'Submit'}
           </button>
         </form>
 
         {message && (
-          <p className={`text-center ${message.includes('Error') || message.includes('not found') ? 'text-red-500' : 'text-green-500'}`}>
+          <p className={`text-center ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
             {message}
           </p>
         )}
