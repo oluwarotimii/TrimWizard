@@ -1,22 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
-export default function handler(req, res) {
-  const { sessionId } = req.query;
+export default async function handler(req, res) {
+  const { sessionId, fileName } = req.query;
 
-  if (!sessionId) {
-    return res.status(400).json({ message: 'No session ID specified' });
+  if (!sessionId || !fileName) {
+    return res.status(400).json({ message: 'Session ID or file name missing' });
   }
 
-  const filePath = path.join('/tmp/cropped', sessionId, 'cropped-images.zip');
+  const filePath = path.join('/tmp/cropped', sessionId, fileName);
 
-  if (fs.existsSync(filePath)) {
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename=cropped-images.zip`);
-
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-  } else {
+  if (!fs.existsSync(filePath)) {
     return res.status(404).json({ message: 'File not found' });
   }
+
+  res.setHeader('Content-Type', 'image/jpeg'); // Assuming all images are JPEG. Adjust accordingly if you expect PNG or other formats.
+  res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+
+  const fileStream = fs.createReadStream(filePath);
+  fileStream.pipe(res);
 }

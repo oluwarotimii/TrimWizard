@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaCloudUploadAlt, FaDownload } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaDownload, FaDownloadAll } from 'react-icons/fa';
 import Image from 'next/image';
 import '@/styles/globals.css';
 import Loading from '@/components/loading';
@@ -8,10 +8,9 @@ export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [thumbnails, setThumbnails] = useState([]);
   const [message, setMessage] = useState("");
-  const [downloadLink, setDownloadLink] = useState("");
+  const [downloadLinks, setDownloadLinks] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Cropping parameters state
   const [cropDetails, setCropDetails] = useState({
     top: '',
     bottom: '',
@@ -53,7 +52,7 @@ export default function Home() {
 
       const data = await res.json();
       setMessage(data.message);
-      setDownloadLink(data.downloadLink);
+      setDownloadLinks(data.downloadLinks || []);
     } catch (error) {
       setMessage("An error occurred. Please try again.");
     } finally {
@@ -61,112 +60,126 @@ export default function Home() {
     }
   };
 
+  const handleDownloadAll = () => {
+    downloadLinks.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.url;
+      a.download = link.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       {loading && <Loading />}
 
-      {downloadLink ? (
-        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl text-center">
-          <p className="text-green-600 mb-4">Your images are ready for download!</p>
-          <a
-            href={downloadLink}
-            download
-            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 justify-center"
-          >
-            <FaDownload className="h-5 w-5" />
-            Download Cropped Images
-          </a>
-        </div>
-      ) : (
-        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
-          <h2 className="text-2xl font-bold text-center mb-4">Upload and Crop Images</h2>
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
+        <h2 className="text-2xl text-black font-bold text-center mb-4">Upload and Crop Images</h2>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Instructions */}
+        <p className="text-black font-bold mb-4">
+          1. Select multiple images to upload.<br />
+          2. Enter crop values for top, bottom, left, and right (in pixels).<br />
+          3. After submission, you will receive download links for the cropped images.<br />
+          4. Click Download All to download all cropped images at once.
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            multiple
+            className="w-full px-4 py-2 border text-black border-gray-300 rounded-md"
+          />
+
+          <div className="grid grid-cols-4 gap-4">
             <input
-              type="file"
-              onChange={handleFileChange}
-              multiple
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
+              type="number"
+              placeholder="Top Crop (px)"
+              name="top"
+              value={cropDetails.top}
+              onChange={handleCropChange}
+              className="px-4 py-2 border border-gray-300 text-black rounded-md"
             />
+            <input
+              type="number"
+              placeholder="Bottom Crop (px)"
+              name="bottom"
+              value={cropDetails.bottom}
+              onChange={handleCropChange}
+              className="px-4 py-2 border border-gray-300 text-black rounded-md"
+            />
+            <input
+              type="number"
+              placeholder="Left Crop (px)"
+              name="left"
+              value={cropDetails.left}
+              onChange={handleCropChange}
+              className="px-4 py-2 border border-gray-300 text-black rounded-md"
+            />
+            <input
+              type="number"
+              placeholder="Right Crop (px)"
+              name="right"
+              value={cropDetails.right}
+              onChange={handleCropChange}
+              className="px-4 py-2 border border-gray-300 text-black rounded-md"
+            />
+          </div>
 
-            {/* Cropping Input Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-700">Top (px)</label>
-                <input
-                  type="number"
-                  name="top"
-                  value={cropDetails.top}
-                  onChange={handleCropChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  min="0"
-                  max="50"
+          {thumbnails.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              {thumbnails.map((thumbnail, index) => (
+                <Image
+                  key={index}
+                  src={thumbnail}
+                  alt="Preview"
+                  width={100}
+                  height={100}
+                  className="object-cover"
                 />
-              </div>
-              <div>
-                <label className="block text-gray-700">Bottom (px)</label>
-                <input
-                  type="number"
-                  name="bottom"
-                  value={cropDetails.bottom}
-                  onChange={handleCropChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  min="0"
-                  max="50"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700">Left (px)</label>
-                <input
-                  type="number"
-                  name="left"
-                  value={cropDetails.left}
-                  onChange={handleCropChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  min="0"
-                  max="300"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700">Right (px)</label>
-                <input
-                  type="number"
-                  name="right"
-                  value={cropDetails.right}
-                  onChange={handleCropChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  min="0"
-                  max="300"
-                />
-              </div>
+              ))}
             </div>
-
-            <button
-              type="submit"
-              className="bg-indigo-600 text-white py-2 px-4 rounded-md flex items-center gap-2 hover:bg-indigo-700"
-            >
-              <FaCloudUploadAlt className="h-5 w-5" />
-              Upload and Crop
-            </button>
-          </form>
-
-          {message && (
-            <p className="mt-4 text-center text-green-600">{message}</p>
           )}
 
-          <div className="mt-6">
-            {thumbnails.length > 0 ? (
-              <div className="flex flex-wrap gap-4 justify-center">
-                {thumbnails.map((thumb, index) => (
-                  <div key={index} className="w-32 h-32 relative">
-                    <Image src={thumb} alt={`Preview ${index + 1}`} layout="fill" objectFit="cover" className="rounded-md shadow-md" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">No images selected</p>
-            )}
-          </div>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 justify-center mt-4"
+          >
+            <FaCloudUploadAlt className="h-5 w-5" />
+            Upload and Crop Images
+          </button>
+        </form>
+
+        {message && <p className="text-red-600 mt-4">{message}</p>}
+      </div>
+
+      {downloadLinks.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl text-center mt-6">
+          <p className="text-green-600 mb-4">Your images are ready for download!</p>
+          <ul className="flex flex-col gap-2">
+            {downloadLinks.map((link, index) => (
+              <li key={index}>
+                <a
+                  href={link.url}
+                  download={link.name}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 justify-center"
+                >
+                  <FaDownload className="h-5 w-5" />
+                  Download {link.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={handleDownloadAll}
+            className="bg-green-600 text-white px-4 py-2 mt-4 tezxt-black rounded-md flex items-center gap-2 hover:bg-green-700 justify-center"
+          >
+            <FaDownload className="h-5 w-5" />
+            Download All
+          </button>
         </div>
       )}
     </div>
