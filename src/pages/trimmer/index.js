@@ -10,6 +10,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [downloadLinks, setDownloadLinks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [imagesProcessed, setImagesProcessed] = useState(0); // New state for tracking processed images
+  const [totalImages, setTotalImages] = useState(0); // New state for total images
 
   const [cropDetails, setCropDetails] = useState({
     top: '',
@@ -22,6 +24,8 @@ export default function Home() {
     const files = Array.from(event.target.files || []);
     setSelectedFiles(files);
     setThumbnails(files.map(file => URL.createObjectURL(file)));
+    setTotalImages(files.length); // Set total images
+    setImagesProcessed(0); // Reset processed images
   };
 
   const handleCropChange = (e) => {
@@ -53,6 +57,9 @@ export default function Home() {
       const data = await res.json();
       setMessage(data.message);
       setDownloadLinks(data.downloadLinks || []);
+
+      // Update processed images count
+      setImagesProcessed(selectedFiles.length);
     } catch (error) {
       setMessage("An error occurred. Please try again.");
     } finally {
@@ -60,20 +67,9 @@ export default function Home() {
     }
   };
 
-  const handleDownloadAll = () => {
-    downloadLinks.forEach(link => {
-      const a = document.createElement('a');
-      a.href = link.url;
-      a.download = link.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      {loading && <Loading />}
+      {loading && <Loading imagesProcessed={imagesProcessed} totalImages={totalImages} />}
 
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
         <h2 className="text-2xl text-black font-bold text-center mb-4">Upload and Crop Images</h2>

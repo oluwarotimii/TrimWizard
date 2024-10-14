@@ -26,10 +26,13 @@ const storage = multer.diskStorage({
   },
 });
 
-// File upload configuration (limit to 500 files and specific types)
+// File upload configuration (limit to 50 files and larger size limits)
 const upload = multer({
   storage,
-  limits: { files: 500 },
+  limits: { 
+    files: 50, // Allow up to 50 files
+    fileSize: 10 * 1024 * 1024, // Limit individual file size to 10MB
+  },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -65,7 +68,7 @@ async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) 
 }
 
 // Middleware to handle file upload
-const uploadMiddleware = upload.array('files', 100); // Max 100 files
+const uploadMiddleware = upload.array('files', 50); // Max 50 files
 
 export const config = {
   api: {
