@@ -66,6 +66,18 @@ export default function Home() {
       setLoading(false);
     }
   };
+  const handleDownloadAll = () => {
+    // Loop through each download link and programmatically trigger the download
+    downloadLinks.forEach((link) => {
+      const a = document.createElement('a');
+      a.href = link.url;
+      a.download = link.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -79,8 +91,10 @@ export default function Home() {
           1. Select multiple images to upload.<br />
           2. Enter crop values for top, bottom, left, and right (in pixels).<br />
           3. After submission, you will receive download links for the cropped images.<br />
-          4. Click Download All to download all cropped images at once.
+          4. Click Download All to download all cropped images at once. <br />
+          5. You can only Upload and crop 50 images at a time
         </p>
+  
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input

@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { 
-    files: 50, // Allow up to 50 files
+    files: 500, // Allow up to 50 files
     fileSize: 10 * 1024 * 1024, // Limit individual file size to 10MB
   },
   fileFilter: (req, file, cb) => {
@@ -68,7 +68,7 @@ async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) 
 }
 
 // Middleware to handle file upload
-const uploadMiddleware = upload.array('files', 50); // Max 50 files
+const uploadMiddleware = upload.array('files', 500); // Max 50 files
 
 export const config = {
   api: {
