@@ -70,9 +70,11 @@ async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) 
 // Middleware to handle file upload
 const uploadMiddleware = upload.array('files', 500); // Max 50 files
 
+// Add the size limit configuration here
 export const config = {
   api: {
     bodyParser: false, // Disable body parser for file uploads
+    sizeLimit: '20mb', // Set the size limit to 20MB
   },
 };
 
