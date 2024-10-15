@@ -1,0 +1,10 @@
+{
+    "functions": {
+      "api/upload.js": {
+        "maxDuration": 10,
+        "memory": 512,
+        "maxLambdaSize": "20mb" 
+      }
+    }
+  }
+  
