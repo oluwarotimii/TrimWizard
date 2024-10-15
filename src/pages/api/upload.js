@@ -1,34 +1,24 @@
 import multer from 'multer';
 import Jimp from 'jimp';
 import path from 'path';
-import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import cloudinary from 'cloudinary';
+import fs from 'fs';
+import { promisify } from 'util';
+import dotenv from 'dotenv';
 
-// Configure directories
-const baseDir = '/tmp';
-const uploadDir = `${baseDir}/uploads`;
-const croppedDir = `${baseDir}/cropped`;
+// Load environment variables from .env file
+dotenv.config();
 
-// Ensure directories exist
-fs.mkdirSync(uploadDir, { recursive: true });
-fs.mkdirSync(croppedDir, { recursive: true });
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const sessionId = req.sessionId;
-    const sessionUploadDir = `${uploadDir}/${sessionId}`;
-    fs.mkdirSync(sessionUploadDir, { recursive: true });
-    cb(null, sessionUploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  },
+// Configure Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // File upload configuration (limit to 50 files and larger size limits)
 const upload = multer({
-  storage,
   limits: { 
     files: 50, // Allow up to 50 files
     fileSize: 10 * 1024 * 1024, // Limit individual file size to 10MB
@@ -44,10 +34,9 @@ const upload = multer({
 });
 
 // Function to crop images based on pixels to remove from all sides
-async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) {
+async function cropImageBySides(imagePath, top, bottom, left, right) {
   try {
     const image = await Jimp.read(imagePath);
-    const fileName = path.basename(imagePath);
 
     const { width, height } = image.bitmap;
     const newWidth = Math.max(1, width - left - right);
@@ -56,10 +45,9 @@ async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) 
     const y = Math.max(0, top);
 
     const croppedImage = image.crop(x, y, newWidth, newHeight);
-    const sessionCroppedDir = `${croppedDir}/${sessionId}`;
-    fs.mkdirSync(sessionCroppedDir, { recursive: true });
-    const outputFilePath = path.join(sessionCroppedDir, `cropped-${fileName}`);
+    const outputFilePath = path.join('/tmp', `cropped-${path.basename(imagePath)}`);
     await croppedImage.writeAsync(outputFilePath);
+
     return outputFilePath;
   } catch (error) {
     console.error(`Error cropping image ${imagePath}:`, error);
@@ -68,22 +56,17 @@ async function cropImageBySides(imagePath, sessionId, top, bottom, left, right) 
 }
 
 // Middleware to handle file upload
-const uploadMiddleware = upload.array('files', 500); // Max 50 files
+const uploadMiddleware = upload.array('files', 50); // Max 50 files
 
-// Add the size limit configuration here
 export const config = {
   api: {
     bodyParser: false, // Disable body parser for file uploads
-    sizeLimit: '20mb', // Set the size limit to 20MB
   },
 };
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const sessionId = uuidv4();
-      req.sessionId = sessionId;
-
       await new Promise((resolve, reject) => {
         uploadMiddleware(req, res, (err) => {
           if (err instanceof multer.MulterError) {
@@ -99,32 +82,26 @@ export default async function handler(req, res) {
       const croppedImagePaths = [];
       const { top, bottom, left, right } = req.body;
 
+      // Upload each file to Cloudinary and crop it
       for (const file of req.files) {
-        const croppedImagePath = await cropImageBySides(
-          file.path,
-          sessionId,
-          parseInt(top),
-          parseInt(bottom),
-          parseInt(left),
-          parseInt(right)
-        );
+        // Crop the image before uploading to Cloudinary
+        const croppedImagePath = await cropImageBySides(file.path, parseInt(top), parseInt(bottom), parseInt(left), parseInt(right));
         if (croppedImagePath) {
-          croppedImagePaths.push(croppedImagePath);
+          // Upload the cropped image to Cloudinary
+          const result = await cloudinary.v2.uploader.upload(croppedImagePath);
+          croppedImagePaths.push({
+            name: file.originalname,
+            url: result.secure_url, // Cloudinary URL of the uploaded image
+          });
+          // Optionally, delete the cropped image from local temp storage
+          await promisify(fs.unlink)(croppedImagePath);
         }
       }
 
       if (croppedImagePaths.length > 0) {
-        const downloadLinks = croppedImagePaths.map((imagePath) => {
-          const fileName = path.basename(imagePath);
-          return {
-            name: fileName,
-            url: `/api/download?sessionId=${sessionId}&fileName=${fileName}`,
-          };
-        });
-
         res.status(200).json({
           message: 'Success',
-          downloadLinks,
+          files: croppedImagePaths,
         });
       } else {
         res.status(400).json({ message: 'Cropping failed.' });
