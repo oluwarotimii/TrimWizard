@@ -10,8 +10,9 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [downloadLinks, setDownloadLinks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [imagesProcessed, setImagesProcessed] = useState(0);
-  const [totalImages, setTotalImages] = useState(0);
+  const [imagesProcessed, setImagesProcessed] = useState(0); // New state for tracking processed images
+  const [totalImages, setTotalImages] = useState(0); // New state for total images
+
   const [cropDetails, setCropDetails] = useState({
     top: '',
     bottom: '',
@@ -23,8 +24,8 @@ export default function Home() {
     const files = Array.from(event.target.files || []);
     setSelectedFiles(files);
     setThumbnails(files.map(file => URL.createObjectURL(file)));
-    setTotalImages(files.length);
-    setImagesProcessed(0);
+    setTotalImages(files.length); // Set total images
+    setImagesProcessed(0); // Reset processed images
   };
 
   const handleCropChange = (e) => {
@@ -56,6 +57,8 @@ export default function Home() {
       const data = await res.json();
       setMessage(data.message);
       setDownloadLinks(data.downloadLinks || []);
+
+      // Update processed images count
       setImagesProcessed(selectedFiles.length);
     } catch (error) {
       setMessage("An error occurred. Please try again.");
@@ -63,8 +66,8 @@ export default function Home() {
       setLoading(false);
     }
   };
-
   const handleDownloadAll = () => {
+    // Loop through each download link and programmatically trigger the download
     downloadLinks.forEach((link) => {
       const a = document.createElement('a');
       a.href = link.url;
@@ -74,6 +77,7 @@ export default function Home() {
       document.body.removeChild(a);
     });
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -82,35 +86,31 @@ export default function Home() {
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl">
         <h2 className="text-2xl text-black font-bold text-center mb-4">Upload and Crop Images</h2>
 
-        {/* Download All button at the top when links are ready */}
-        {downloadLinks.length > 0 && (
-          <button
-            onClick={handleDownloadAll}
-            className="bg-green-600 text-white px-4 py-2 mb-4 rounded-md flex items-center gap-2 hover:bg-green-700 justify-center"
-          >
-            <FaDownload className="h-5 w-5" />
-            Download All
-          </button>
-        )}
+        {/* Instructions */}
+        <p className="text-black font-bold mb-4">
+          1. Select multiple images to upload.<br />
+          2. Enter crop values for top, bottom, left, and right (in pixels).<br />
+          3. After submission, you will receive download links for the cropped images.<br />
+          4. Click Download All to download all cropped images at once. <br />``
+          5. You can only Upload and crop 50 images at a time
+        </p>
+  
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Upload button at the top */}
           <input
             type="file"
             onChange={handleFileChange}
             multiple
-            disabled={downloadLinks.length > 0}
             className="w-full px-4 py-2 border text-black border-gray-300 rounded-md"
           />
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-4 gap-4">
             <input
               type="number"
               placeholder="Top Crop (px)"
               name="top"
               value={cropDetails.top}
               onChange={handleCropChange}
-              disabled={downloadLinks.length > 0}
               className="px-4 py-2 border border-gray-300 text-black rounded-md"
             />
             <input
@@ -119,7 +119,6 @@ export default function Home() {
               name="bottom"
               value={cropDetails.bottom}
               onChange={handleCropChange}
-              disabled={downloadLinks.length > 0}
               className="px-4 py-2 border border-gray-300 text-black rounded-md"
             />
             <input
@@ -128,7 +127,6 @@ export default function Home() {
               name="left"
               value={cropDetails.left}
               onChange={handleCropChange}
-              disabled={downloadLinks.length > 0}
               className="px-4 py-2 border border-gray-300 text-black rounded-md"
             />
             <input
@@ -137,7 +135,6 @@ export default function Home() {
               name="right"
               value={cropDetails.right}
               onChange={handleCropChange}
-              disabled={downloadLinks.length > 0}
               className="px-4 py-2 border border-gray-300 text-black rounded-md"
             />
           </div>
@@ -160,7 +157,6 @@ export default function Home() {
           <button
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 justify-center mt-4"
-            disabled={downloadLinks.length > 0}
           >
             <FaCloudUploadAlt className="h-5 w-5" />
             Upload and Crop Images
@@ -170,7 +166,6 @@ export default function Home() {
         {message && <p className="text-red-600 mt-4">{message}</p>}
       </div>
 
-      {/* Download links section */}
       {downloadLinks.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl text-center mt-6">
           <p className="text-green-600 mb-4">Your images are ready for download!</p>
@@ -188,6 +183,13 @@ export default function Home() {
               </li>
             ))}
           </ul>
+          <button
+            onClick={handleDownloadAll}
+            className="bg-green-600 text-white px-4 py-2 mt-4 tezxt-black rounded-md flex items-center gap-2 hover:bg-green-700 justify-center"
+          >
+            <FaDownload className="h-5 w-5" />
+            Download All
+          </button>
         </div>
       )}
     </div>
