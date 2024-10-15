@@ -13,12 +13,12 @@ const Loading = ({ imagesProcessed, totalImages }) => {
         <FaSpinner className="animate-spin text-4xl mb-4" />
         <p className="text-lg">Processing your images...</p>
         <div className="w-full bg-gray-300 rounded-full mt-4">
-          <div
+          {/* <div
             className="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
             style={{ width: `${progressPercentage}%` }}
           >
             {imagesProcessed} / {totalImages}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
