@@ -14,6 +14,7 @@
     "archiver": "^7.0.1",
     "cloudinary": "^1.41.3",
     "croppie": "^2.6.5",
+    "dotenv": "^16.4.5",
     "formidable": "^2.0.1",
     "googleapis": "^144.0.0",
     "jimp": "^0.16.1",
